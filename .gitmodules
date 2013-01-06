@@ -1,0 +1,3 @@
+[submodule "ext/dropdown-table-filter"]
+	path = ext/dropdown-table-filter
+	url = git://github.com/rbayliss/Dropdown-Table-Filter.git

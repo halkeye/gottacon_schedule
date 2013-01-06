@@ -7,10 +7,11 @@ jQuery(document).ready(function() {
         var header = jQuery('<tr>').appendTo(jQuery('<thead>').appendTo(content));
         jQuery.each(data.data.splice(0,1)[0], function(col, colData) {
             if (col == 7) return true; /* Addition Date */
-            header.append(
-                jQuery('<th>').text(colData)
-            );
-            
+            var headerBtn = jQuery('<th>').text(colData).appendTo(header);
+            /* Event */
+            if (col == 5) headerBtn.addClass('skip-filter');
+            /* Description */
+            if (col == 6) headerBtn.addClass('skip-filter');
         });
         var body = jQuery('<tbody>').appendTo(content);
         jQuery.each(data.data, function(row, rowData) {
@@ -25,9 +26,9 @@ jQuery(document).ready(function() {
             tr.appendTo(body);
         });
         
-        console.log(data);
 
         // last thing incase of error
         jQuery('#content').empty().append(content);
+        content.ddTableFilter();
     });
 });
