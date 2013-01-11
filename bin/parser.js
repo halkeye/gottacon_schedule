@@ -34,7 +34,6 @@ fs.readdir(__dirname + '/../_tmp/', function(err, files) {
     });
     /* There has to be a callback way to handle this, but lazy for non long running script */
     var waitForFinish = setInterval(function() {
-        console.log(outstandingFiles);
         if (Object.keys(outstandingFiles).length === 0)
         {
             process.nextTick(doneProcessingFile);
@@ -44,6 +43,41 @@ fs.readdir(__dirname + '/../_tmp/', function(err, files) {
 });
 
 var processDescriptions = function($, callback) {
+    var $block = $('table table td').eq(1);
+    var removeIdRegex   = /^\"(\d+)\">/;
+    var removeHtmlRegex = /<(?:.|\n)*?>/gm;
+    /* FIXME - use a safer module? */
+    var removeHtml = function(arr)
+    {
+        return arr.join("\n").replace(removeHtmlRegex, '').trim();
+    };
+    
+
+    var matches = $block.html().split('<a name='); // .match(/<a name=\"\d+\">[\s\S]*(?!<a name)/g);
+    matches.forEach(function(str) {
+        str = str.trim();
+        if (str.length === 0) return;
+
+        var desc = { gameIds: [] };
+        desc.id = parseInt(str.match(removeIdRegex)[1],10);
+        /* Remove the id and process remaining strings */
+        str = str.replace(removeIdRegex, '');
+        var lines = str.split("\n");
+        /* Title in the original <a> */
+        desc.title = removeHtml(lines.splice(0,1));
+        /* Organizier is next line */
+        desc.organizer = removeHtml(lines.splice(0,1)).replace(/^By /,'').replace(/\.$/,'');
+        /* Day (probably not needed) is next */
+        desc.day = removeHtml(lines.splice(0,1)).replace('Day:','');
+        /* Start Time (probably not needed */
+        desc.startTime = removeHtml(lines.splice(0,1)).replace('Start Time: ','');
+        /* Number of participants. Throw away as I don't want to parse it */
+        lines.splice(0,1); // Number of participants:
+        /* Remainder is descripion */
+        desc.desc = removeHtml(lines);
+        /* Save description */
+        descriptions[desc.id] = desc;
+    });
     process.nextTick(callback);
 };
 
@@ -113,5 +147,19 @@ var processSchedule = function($, callback) {
     process.nextTick(callback);
 };
 var doneProcessingFile = function() {
-    console.log(games);
+    /* Check all the sessions we found and make sure they have a description when all said and done */
+    Object.keys(games).forEach(function(gameId) {
+        var game = games[gameId];
+        if (!descriptions[game.descId]) {
+            console.log("Can't find desc for game:", game);
+        }
+        descriptions[game.descId].gameIds.push(gameId);
+    });
+    /* Find any descriptions with no games */
+    Object.keys(descriptions).forEach(function(descId) {
+        if (descriptions[descId].gameIds.lenght === 0) {
+            console.log("Found unused description", descriptions[descId]);
+        }
+    });
+    console.log("Assumed all good, outputting");
 };
