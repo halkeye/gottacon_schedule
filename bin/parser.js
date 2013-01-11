@@ -105,12 +105,15 @@ var processSchedule = function($, callback) {
             if ($gameCell.children().length === 0) return true;
 
             var data = {
+                players: []
             };
 
             var $title = $gameCell.children(0 /*table*/ ).children(0/*tr*/).children(0/*td*/).find('a');
             if ($title)
             {
-                data.title = $title.text();
+                var arr = $title.text().split(' - ');
+                data.type = arr[0];
+                data.title = arr.slice(1).join(' - ');
                 data.eventId = parseInt($title.attr('name'),10);
                 data.descId = parseInt($title.attr('href').match(/list.php\#(\d+)\'/)[1],10);
             }
@@ -134,6 +137,14 @@ var processSchedule = function($, callback) {
                     data.openSpotCount = parseInt(matches[4],10);
                     data.slot = slots[idx].slot;
                     data.time = slots[idx].time;
+                }
+                if (data.playerCount > 0)
+                {
+                    $gameCell.find("table tr").eq(5).children(0).children().each(function(idx, elm) {
+                        var txt = $(elm).text().trim();
+                        if (txt.length === 0) return; /* Skip padding text */
+                        data.players.push(txt);
+                    });
                 }
             }
             if (games[data.eventId])
