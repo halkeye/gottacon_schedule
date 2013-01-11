@@ -5,20 +5,24 @@ var
 var games = {}; /* by event id */
 var descriptions = {}; /* by description id */
 
-fs.readFile(__dirname + '/../_tmp/GottaCon 2013   Gaming Schedule   Friday, Feb 1 2013.htm', function (err, data) {
-    if (err) throw err;
-    var $ = cheerio.load(data);
-    if ($('title').text().match(/description/i))
-    {
-        /* Loading Descriptions */
-    }
-    else
-    {
-        /* Loading Schedules */
-        process.nextTick(function() {
-            processSchedule($);
+fs.readdir(__dirname + '/../_tmp/', function(err, files) {
+    files.forEach(function(file) {
+        fs.readFile(__dirname + '/../_tmp/' + file, function (err, data) {
+            if (err) throw err;
+            var $ = cheerio.load(data);
+            if ($('title').text().match(/description/i))
+            {
+                /* Loading Descriptions */
+            }
+            else
+            {
+                /* Loading Schedules */
+                process.nextTick(function() {
+                    processSchedule($);
+                });
+            }
         });
-    }
+    });
 });
 
 var processSchedule = function($) {
