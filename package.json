@@ -1,0 +1,25 @@
+{
+  "name": "gottacon_schedule",
+  "version": "0.0.0",
+  "description": "Gottacon scheduleing tool",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/halkeye/gottacon_schedule.git"
+  },
+  "author": "Gavin Mogan <gavin@kodeokan.com>",
+  "license": "BSD",
+  "gitHead": "6c18eee7d56ae0624289ff2f37f20c199dd19b07",
+  "readmeFilename": "README.md",
+  "private": true,
+  "devDependencies": {},
+  "dependencies": {
+    "cheerio": "~0.10.5"
+  }
+}
