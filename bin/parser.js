@@ -2,16 +2,26 @@
 var 
     fs = require('fs'),
     cheerio = require('cheerio');
-var $; /* cheerio */
-var games = [];
+var games = {}; /* by event id */
+var descriptions = {}; /* by description id */
 
 fs.readFile(__dirname + '/../_tmp/GottaCon 2013   Gaming Schedule   Friday, Feb 1 2013.htm', function (err, data) {
     if (err) throw err;
-    $ = cheerio.load(data);
-    process.nextTick(postFileLoad);
+    var $ = cheerio.load(data);
+    if ($('title').text().match(/description/i))
+    {
+        /* Loading Descriptions */
+    }
+    else
+    {
+        /* Loading Schedules */
+        process.nextTick(function() {
+            processSchedule($);
+        });
+    }
 });
 
-var postFileLoad = function() {
+var processSchedule = function($) {
     var $gameCells = $('.tableframe table');
     var pageDate;
     var slots = [];
@@ -35,8 +45,15 @@ var postFileLoad = function() {
             if ($gameCell.children().length === 0) return true;
 
             var data = {
-                title: $gameCell.find("table tr td span b a").text()
             };
+
+            var $title = $gameCell.children(0 /*table*/ ).children(0/*tr*/).children(0/*td*/).find('a');
+            if ($title)
+            {
+                data.title = $title.text();
+                data.eventId = parseInt($title.attr('name'),10);
+                data.descId = parseInt($title.attr('href').match(/list.php\#(\d+)\'/)[1],10);
+            }
 
             if (1)
             {
@@ -59,7 +76,12 @@ var postFileLoad = function() {
                     data.time = slots[idx].time;
                 }
             }
-            games.push(data);
+            if (games[data.eventId])
+            {
+                console.log("Data is duplicated:", data, games[data.eventId]);
+                throw {};
+            }
+            games[data.eventId] = data;
         });
     });
     process.nextTick(doneProcessingFile);
