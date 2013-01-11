@@ -5,27 +5,49 @@ var
 var games = {}; /* by event id */
 var descriptions = {}; /* by description id */
 
+var outstandingFiles = {};
 fs.readdir(__dirname + '/../_tmp/', function(err, files) {
     files.forEach(function(file) {
+        outstandingFiles[file] = 1;
         fs.readFile(__dirname + '/../_tmp/' + file, function (err, data) {
             if (err) throw err;
             var $ = cheerio.load(data);
             if ($('title').text().match(/description/i))
             {
                 /* Loading Descriptions */
+                process.nextTick(function() {
+                    processDescriptions($, function() {
+                        delete outstandingFiles[file];
+                    });
+                });
             }
             else
             {
                 /* Loading Schedules */
                 process.nextTick(function() {
-                    processSchedule($);
+                    processSchedule($, function() {
+                        delete outstandingFiles[file];
+                    });
                 });
             }
         });
     });
+    /* There has to be a callback way to handle this, but lazy for non long running script */
+    var waitForFinish = setInterval(function() {
+        console.log(outstandingFiles);
+        if (Object.keys(outstandingFiles).length === 0)
+        {
+            process.nextTick(doneProcessingFile);
+            clearInterval(waitForFinish);
+        }
+    });
 });
 
-var processSchedule = function($) {
+var processDescriptions = function($, callback) {
+    process.nextTick(callback);
+};
+
+var processSchedule = function($, callback) {
     var $gameCells = $('.tableframe table');
     var pageDate;
     var slots = [];
@@ -88,7 +110,7 @@ var processSchedule = function($) {
             games[data.eventId] = data;
         });
     });
-    process.nextTick(doneProcessingFile);
+    process.nextTick(callback);
 };
 var doneProcessingFile = function() {
     console.log(games);
