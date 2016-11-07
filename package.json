@@ -20,6 +20,6 @@
   "private": true,
   "devDependencies": {},
   "dependencies": {
-    "cheerio": "~0.10.5"
+    "cheerio": "~0.22.0"
   }
 }
